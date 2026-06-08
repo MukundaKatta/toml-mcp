@@ -46,3 +46,16 @@ test('rejects non-object top-level', () => {
 test('rejects malformed TOML', () => {
   assert.throws(() => tomlToJson('key = unquoted-string-no-leading-letter ='));
 });
+
+test('round-trips a nested document with arrays of tables', () => {
+  const toml = '[server]\nport = 8080\nhost = "localhost"\n\n[[items]]\nname = "first"\n';
+  const parsed = tomlToJson(toml);
+  const reparsed = tomlToJson(jsonToToml(parsed));
+  assert.deepEqual(reparsed, parsed);
+});
+
+test('parses dates and times to Date instances', () => {
+  const v = tomlToJson('created = 1979-05-27T07:32:00Z') as { created: Date };
+  assert.ok(v.created instanceof Date);
+  assert.equal(v.created.toISOString(), '1979-05-27T07:32:00.000Z');
+});
